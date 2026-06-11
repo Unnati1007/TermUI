@@ -48,6 +48,26 @@ export class Select extends Widget {
         if (opt && !opt.disabled) { this._onSelect?.(opt, this._selectedIndex); this._isOpen = false; this.markDirty(); }
     }
 
+    setItems(options: SelectOption[]): void {
+        this._options = options;
+        if (this._options.length === 0) {
+            this._selectedIndex = 0;
+        } else {
+            this._selectedIndex = Math.max(0, Math.min(this._selectedIndex, this._options.length - 1));
+        }
+        this.markDirty();
+    }
+
+    handleKey(event: import('@termuijs/core').KeyEvent): void {
+        if (event.key === 'down') this.selectNext();
+        else if (event.key === 'up') this.selectPrev();
+        else if (event.key === 'enter' || event.key === 'space') {
+            if (!this._isOpen) this.open();
+            else this.confirm();
+        }
+        else if (event.key === 'escape') this.close();
+    }
+
     protected _renderSelf(screen: Screen): void {
         const { x, y, width } = this._rect;
         if (width <= 0) return;

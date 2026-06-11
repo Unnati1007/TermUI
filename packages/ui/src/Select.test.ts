@@ -66,4 +66,40 @@ describe('Select', () => {
         sel.confirm();
         expect(onSelect).toHaveBeenCalledWith(OPTIONS[1], 1);
     });
+
+    it('setItems updates options and clamps selectedIndex', () => {
+        const sel = new Select(OPTIONS);
+        sel.selectNext();
+        sel.selectNext();
+        expect(sel.selectedIndex).toBe(2);
+
+        // Reduce list to 2 items
+        sel.setItems([
+            { label: 'Dog', value: 'dog' },
+            { label: 'Cat', value: 'cat' }
+        ]);
+
+        // Should clamp from 2 to 1
+        expect(sel.selectedIndex).toBe(1);
+    });
+
+    it('handleKey navigates and interacts', () => {
+        const sel = new Select(OPTIONS);
+        expect(sel.selectedIndex).toBe(0);
+
+        sel.handleKey({ key: 'down', ctrl: false, alt: false, shift: false } as any);
+        expect(sel.selectedIndex).toBe(1);
+
+        sel.handleKey({ key: 'up', ctrl: false, alt: false, shift: false } as any);
+        expect(sel.selectedIndex).toBe(0);
+
+        // Open with space
+        expect(sel.isOpen).toBe(false);
+        sel.handleKey({ key: 'space', ctrl: false, alt: false, shift: false } as any);
+        expect(sel.isOpen).toBe(true);
+
+        // Close with escape
+        sel.handleKey({ key: 'escape', ctrl: false, alt: false, shift: false } as any);
+        expect(sel.isOpen).toBe(false);
+    });
 });
