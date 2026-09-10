@@ -440,6 +440,32 @@ describe('batch', () => {
         expect(spy).not.toHaveBeenCalled()
     })
 
+    it('non-batched setState during an async batch callback is not frozen (#3244)', async () => {
+        const useStore = createStore((set) => ({
+            count: 0,
+            flag: false,
+        }))
+        const spy = vi.fn()
+        useStore.subscribe(spy)
+
+        let resolveBatch!: () => void
+        const batchPromise = batch(async () => {
+            await new Promise<void>((resolve) => {
+                resolveBatch = resolve
+            })
+        })
+
+        // A setState made outside the batch while its async callback is still
+        // awaiting must be applied immediately — not deferred until the batch settles.
+        useStore.setState({ flag: true })
+
+        expect(spy).toHaveBeenCalledOnce()
+        expect(useStore.getState().flag).toBe(true)
+
+        resolveBatch()
+        await batchPromise
+    })
+
 })
 
 describe('middleware', () => {
